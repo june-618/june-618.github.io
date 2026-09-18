@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 04 - 无限循环</title>
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+<main class="page">
+  <div class="toolbar">
+    <button class="btn" id="prev">向左</button>
+    <button class="btn" id="next">向右</button>
+    <div class="dots"></div>
+  </div>
+  <section class="viewport"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 无限循环（首尾无断层），可用于运营位轮播</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 5);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 0;
+function shortest(from, to, len) {
+  const raw = to - from;
+  const alt = raw > 0 ? raw - len : raw + len;
+  return Math.abs(raw) < Math.abs(alt) ? raw : alt;
+}
+function render() {
+  cards.forEach((card, i) => {
+    const d = shortest(active, i, items.length);
+    const x = d * 228;
+    const y = d === 0 ? -52 : -18;
+    const scale = d === 0 ? 1 : .84;
+    card.style.zIndex = 50 - Math.abs(d);
+    card.style.opacity = Math.abs(d) > 2 ? 0 : 1;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+  });
+  makeDots(items.length, active);
+}
+prev.onclick = () => { active = (active - 1 + items.length) % items.length; render(); };
+next.onclick = () => { active = (active + 1) % items.length; render(); };
+render();
+</script>
+</body>
+</html>

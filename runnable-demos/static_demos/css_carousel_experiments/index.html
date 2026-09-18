@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>卡片交互 Demo 集合</title>
+  <style>
+    :root { --bg:#0d1d33; --panel:#132948; --line:#2a4d84; --txt:#e6f0ff; --muted:#9ab4d8; --acc:#5ec1ff; }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:"PingFang SC","Microsoft YaHei",sans-serif;background:radial-gradient(circle at 20% -30%,#284d85,#0d1d33 52%);color:var(--txt)}
+    .wrap{max-width:1100px;margin:0 auto;padding:24px}
+    h1{margin:0 0 6px;font-size:28px}
+    p{margin:0;color:var(--muted)}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin:18px 0}
+    a{display:block;padding:14px;border-radius:12px;border:1px solid var(--line);background:linear-gradient(180deg,#18345d,#132948);text-decoration:none;color:var(--txt)}
+    a:hover{border-color:var(--acc);transform:translateY(-1px)}
+    .title{font-weight:800}
+    .desc{font-size:13px;color:var(--muted);margin-top:4px}
+    iframe{width:100%;height:620px;border:1px solid var(--line);border-radius:14px;background:#fff}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <h1>卡片轮播交互 Demo 集合（10种）</h1>
+  <p>点击下方任意 demo 会在当前页面预览。你可以直接打开对应 html 文件进行二次修改。</p>
+  <section class="grid" id="list"></section>
+  <iframe id="preview" src="./demos/demo-01-click-center.html"></iframe>
+</div>
+<script>
+const demos = [
+  ['demo-01-click-center.html', '01 点击切换', '经典中间高亮，点击切换'],
+  ['demo-02-drag-swipe.html', '02 拖拽吸附', '拖拽后自动吸附到最近卡片'],
+  ['demo-03-3d-coverflow.html', '03 3D Coverflow', '旋转透视，视觉冲击强'],
+  ['demo-04-infinite-loop.html', '04 无限循环', '首尾无断层，适合长期轮播'],
+  ['demo-05-wheel-control.html', '05 滚轮切换', '适配触控板/鼠标滚轮'],
+  ['demo-06-autoplay-progress.html', '06 自动播放', '带进度条，悬停暂停'],
+  ['demo-07-fan-hover.html', '07 扇形展开', '悬停展开、点击收拢'],
+  ['demo-08-touch-inertia.html', '08 触控惯性', '移动端甩动翻页体验'],
+  ['demo-09-accessible.html', '09 无障碍键盘', 'Tab/Enter/方向键可用'],
+  ['demo-10-css-only.html', '10 纯 CSS', '无 JS 兜底实现']
+];
+const list = document.getElementById('list');
+const preview = document.getElementById('preview');
+for (const [file, name, desc] of demos) {
+  const a = document.createElement('a');
+  a.href = `./demos/${file}`;
+  a.target = '_blank';
+  a.innerHTML = `<div class="title">${name}</div><div class="desc">${desc}</div>`;
+  a.addEventListener('click', e => { e.preventDefault(); preview.src = `./demos/${file}`; });
+  list.appendChild(a);
+}
+</script>
+</body>
+</html>

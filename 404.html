@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="generator" content="VuePress 2.0.0-rc.27" />
+    <style>
+      :root {
+        --vp-c-bg: #fff;
+      }
+
+      [data-theme='dark'] {
+        --vp-c-bg: #1b1b1f;
+      }
+
+      html,
+      body {
+        background-color: var(--vp-c-bg);
+      }
+    </style>
+    <script>
+      const useChoice = localStorage.getItem('vuepress-color-scheme')
+      const systemStatus =
+        'matchMedia' in window
+          ? window.matchMedia('(prefers-color-scheme: dark)').matches
+          : false
+
+      if (useChoice === 'light') {
+        document.documentElement.dataset.theme = 'light'
+      } else if (useChoice === 'dark' || systemStatus) {
+        document.documentElement.dataset.theme = 'dark'
+      }
+    </script>
+    <title>Personal Knowledge Base</title><meta name="description" content="精选知识库内容">
+    <link rel="preload" href="/assets/style-BfjtKSr-.css" as="style"><link rel="stylesheet" href="/assets/style-BfjtKSr-.css">
+    <link rel="modulepreload" href="/assets/app-Dik4I5SR.js"><link rel="modulepreload" href="/assets/404.html-CO_lcDUA.js">
+    
+  </head>
+  <body>
+    <div id="app"><!--[--><div class="vp-theme-container" vp-container data-v-70265897><main class="page" data-v-70265897><div vp-content data-v-70265897><h1 data-v-70265897>404</h1><blockquote data-v-70265897>There&#39;s nothing here.</blockquote><a class="route-link" href="/" data-v-70265897>Take me home</a></div></main></div><!--[--><!----><!--]--><!--]--></div>
+    <script type="module" src="/assets/app-Dik4I5SR.js" defer></script>
+  </body>
+</html>

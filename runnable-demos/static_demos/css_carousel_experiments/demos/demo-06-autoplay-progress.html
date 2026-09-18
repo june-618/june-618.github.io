@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 06 - 自动轮播进度</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .bar { width: 260px; height: 8px; border-radius: 99px; background: rgba(19,66,138,.18); overflow: hidden; }
+    .bar > i { display: block; height: 100%; width: 0%; background: linear-gradient(90deg, #65e6ff, #2f95ff); }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar">
+    <button class="btn" id="toggle">暂停</button>
+    <div class="bar"><i id="p"></i></div>
+    <div class="dots"></div>
+  </div>
+  <section class="viewport" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 自动播放 + 进度条，鼠标悬停暂停，适合首页 Banner 区</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 5);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 0;
+let progress = 0;
+let playing = true;
+const duration = 2400;
+const toggleBtn = document.getElementById('toggle');
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active;
+    card.style.transform = `translate(calc(-50% + ${d * 228}px), calc(-50% + ${d === 0 ? -50 : -18}px)) scale(${d === 0 ? 1 : .84})`;
+    card.style.opacity = Math.abs(d) > 2 ? 0 : 1;
+    card.style.zIndex = 100 - Math.abs(d);
+    card.style.filter = d === 0 ? 'none' : 'saturate(.7)';
+  });
+  makeDots(items.length, active);
+}
+function tick(ts) {
+  if (!tick.last) tick.last = ts;
+  const dt = ts - tick.last;
+  tick.last = ts;
+  if (playing) {
+    progress += dt / duration;
+    if (progress >= 1) {
+      progress = 0;
+      active = (active + 1) % items.length;
+      render();
+    }
+  }
+  document.getElementById('p').style.width = `${Math.min(progress, 1) * 100}%`;
+  requestAnimationFrame(tick);
+}
+toggleBtn.onclick = () => {
+  playing = !playing;
+  toggleBtn.textContent = playing ? '暂停' : '继续';
+};
+const vp = document.getElementById('vp');
+vp.addEventListener('mouseenter', () => playing = false);
+vp.addEventListener('mouseleave', () => playing = true);
+render();
+requestAnimationFrame(tick);
+</script>
+</body>
+</html>
