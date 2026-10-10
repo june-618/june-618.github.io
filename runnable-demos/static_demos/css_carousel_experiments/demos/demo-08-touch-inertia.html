@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 08 - 触控惯性</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .viewport { touch-action: pan-y; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar"><div class="dots"></div></div>
+  <section class="viewport" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 移动端甩动切换（根据速度决定翻页数量）</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 6);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 1;
+let offset = 0;
+let down = false;
+let sx = 0;
+let st = 0;
+let vx = 0;
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active + offset;
+    const x = d * 230;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${d === 0 ? -48 : -18}px)) scale(${d === 0 ? 1 : .84})`;
+    card.style.opacity = Math.abs(d) > 2.5 ? 0 : 1;
+    card.style.zIndex = 99 - Math.abs(d);
+  });
+  makeDots(items.length, active);
+}
+const vp = document.getElementById('vp');
+vp.addEventListener('pointerdown', e => {
+  down = true; sx = e.clientX; st = performance.now(); vx = 0;
+  vp.setPointerCapture(e.pointerId);
+});
+vp.addEventListener('pointermove', e => {
+  if (!down) return;
+  const now = performance.now();
+  const dx = e.clientX - sx;
+  const dt = Math.max(now - st, 16);
+  vx = dx / dt;
+  offset = dx / 230;
+  render();
+});
+function finish() {
+  if (!down) return;
+  down = false;
+  const fling = Math.round(vx * 5);
+  let step = 0;
+  if (offset > .22) step = -1;
+  if (offset < -.22) step = 1;
+  step += fling > 0.9 ? -1 : fling < -0.9 ? 1 : 0;
+  active = (active + step + items.length * 2) % items.length;
+  offset = 0;
+  render();
+}
+vp.addEventListener('pointerup', finish);
+vp.addEventListener('pointercancel', finish);
+render();
+</script>
+</body>
+</html>

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 07 - 扇形展开</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .viewport:hover .game-card { filter: saturate(.8); }
+    .game-card { cursor: pointer; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar"><div class="dots"></div></div>
+  <section class="viewport" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 悬停时扇形展开，点击指定卡片收拢并居中</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 7);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach((c, i) => {
+  track.appendChild(c);
+  c.addEventListener('click', () => { active = i; render(); });
+});
+let active = 3;
+let spread = 0;
+const vp = document.getElementById('vp');
+vp.addEventListener('mouseenter', () => { spread = 1; render(); });
+vp.addEventListener('mouseleave', () => { spread = 0; render(); });
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active;
+    const base = spread ? 128 : 76;
+    const x = d * base;
+    const rot = spread ? d * 11 : d * 4;
+    const y = spread ? -10 + Math.abs(d) * 6 : -40 + Math.abs(d) * 4;
+    const scale = d === 0 ? 1 : spread ? .8 : .9;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) rotate(${rot}deg) scale(${scale})`;
+    card.style.zIndex = 90 - Math.abs(d);
+    card.style.opacity = Math.abs(d) > 4 ? 0 : 1;
+    card.style.filter = d === 0 ? 'none' : 'saturate(.7)';
+  });
+  makeDots(items.length, active);
+}
+render();
+</script>
+</body>
+</html>

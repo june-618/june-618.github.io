@@ -1,0 +1,564 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>CSS 连续管道 Demo</title>
+<link rel="icon" href="data:," />
+<style>
+@property --spin {
+  syntax: "<angle>";
+  initial-value: 0deg;
+  inherits: false;
+}
+
+:root {
+  --cols: 15;
+  --rows: 9;
+  --cell: 56px;
+  --tube: 28px;
+  --wall: 5px;
+  --pipe-color: #20365b;
+  --pipe-light: color-mix(in srgb, var(--pipe-color), white 36%);
+  --flow-a: #23d5ff;
+  --flow-b: #b86cff;
+  --flow-c: #3dffc2;
+  --bg: #081523;
+  --panel: rgba(13, 25, 43, 0.88);
+  --line: #2c4263;
+  --muted: #a9bdd5;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  padding: 24px;
+  color: #eef6ff;
+  font-family: Arial, "PingFang SC", "Microsoft YaHei", sans-serif;
+  background:
+    radial-gradient(circle at 18% 0%, #2b4770 0 24%, transparent 46%),
+    linear-gradient(135deg, #07111e, #142b43 58%, #07101a);
+}
+
+main {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+h1 {
+  margin: 0 0 8px;
+  font-size: clamp(24px, 4vw, 40px);
+  letter-spacing: 0;
+}
+
+.intro {
+  max-width: 780px;
+  margin: 0 0 18px;
+  color: var(--muted);
+  line-height: 1.7;
+  font-size: 14px;
+}
+
+code {
+  color: #d9e8ff;
+  background: rgba(255, 255, 255, 0.08);
+  padding: 1px 5px;
+  border-radius: 4px;
+}
+
+.toolbar,
+.pathbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.control,
+.action,
+.dir {
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: var(--panel);
+  color: #d8e7fb;
+  font: inherit;
+  font-size: 13px;
+}
+
+.control {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 10px;
+  white-space: nowrap;
+}
+
+.control input[type="color"] {
+  width: 30px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.control input[type="range"] {
+  width: 112px;
+}
+
+.pathbar {
+  align-items: stretch;
+}
+
+.path-input {
+  flex: 1 1 360px;
+  min-height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 8px 10px;
+  color: #eaf4ff;
+  background: rgba(8, 18, 31, 0.9);
+  font: 14px/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  letter-spacing: 0;
+  outline: 0;
+  text-transform: uppercase;
+}
+
+.path-input:focus {
+  border-color: #63a5ff;
+  box-shadow: 0 0 0 3px rgba(99, 165, 255, 0.16);
+}
+
+.button-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 14px;
+}
+
+.action,
+.dir {
+  display: inline-grid;
+  place-items: center;
+  padding: 0 14px;
+  cursor: pointer;
+}
+
+.dir {
+  width: 42px;
+  padding: 0;
+  font-size: 18px;
+}
+
+.action:hover,
+.dir:hover {
+  border-color: #5e8ed0;
+  background: rgba(21, 42, 70, 0.96);
+}
+
+.status {
+  min-height: 22px;
+  margin: 0 0 12px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.status.is-error {
+  color: #ffb6c1;
+}
+
+.stage {
+  overflow: auto;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px;
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.04) 1px, transparent 1px),
+    rgba(8, 17, 29, 0.78);
+  background-size: var(--cell) var(--cell);
+}
+
+.pipe {
+  display: grid;
+  grid-template-columns: repeat(var(--cols), var(--cell));
+  grid-template-rows: repeat(var(--rows), var(--cell));
+  width: calc(var(--cols) * var(--cell));
+  height: calc(var(--rows) * var(--cell));
+}
+
+.seg {
+  position: relative;
+  width: var(--cell);
+  height: var(--cell);
+}
+
+.seg::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+  filter: blur(8px);
+  opacity: 0.34;
+}
+
+.turn-dot {
+  position: absolute;
+  left: calc(50% - 4px);
+  top: calc(50% - 4px);
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 12px rgba(255, 255, 255, 0.85);
+  z-index: 3;
+}
+
+.h {
+  background:
+    linear-gradient(to bottom,
+      transparent calc(50% - var(--tube) / 2 - var(--wall)),
+      var(--pipe-light) calc(50% - var(--tube) / 2 - var(--wall)),
+      var(--pipe-color) calc(50% - var(--tube) / 2),
+      transparent calc(50% - var(--tube) / 2),
+      transparent calc(50% + var(--tube) / 2),
+      var(--pipe-color) calc(50% + var(--tube) / 2),
+      var(--pipe-light) calc(50% + var(--tube) / 2 + var(--wall)),
+      transparent calc(50% + var(--tube) / 2 + var(--wall)));
+}
+
+.h::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--tube) / 2);
+  height: var(--tube);
+  background: linear-gradient(90deg, var(--flow-a), var(--flow-b), var(--flow-c), var(--flow-a));
+  background-size: 220% 100%;
+  animation: flow-x 2.6s linear infinite;
+}
+
+.h::after {
+  left: 0;
+  right: 0;
+  top: calc(50% - var(--tube) / 2);
+  height: var(--tube);
+  background: var(--flow-a);
+}
+
+.v {
+  background:
+    linear-gradient(to right,
+      transparent calc(50% - var(--tube) / 2 - var(--wall)),
+      var(--pipe-light) calc(50% - var(--tube) / 2 - var(--wall)),
+      var(--pipe-color) calc(50% - var(--tube) / 2),
+      transparent calc(50% - var(--tube) / 2),
+      transparent calc(50% + var(--tube) / 2),
+      var(--pipe-color) calc(50% + var(--tube) / 2),
+      var(--pipe-light) calc(50% + var(--tube) / 2 + var(--wall)),
+      transparent calc(50% + var(--tube) / 2 + var(--wall)));
+}
+
+.v::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--tube) / 2);
+  width: var(--tube);
+  background: linear-gradient(180deg, var(--flow-a), var(--flow-b), var(--flow-c), var(--flow-a));
+  background-size: 100% 220%;
+  animation: flow-y 2.6s linear infinite;
+}
+
+.v::after {
+  top: 0;
+  bottom: 0;
+  left: calc(50% - var(--tube) / 2);
+  width: var(--tube);
+  background: var(--flow-c);
+}
+
+.tl,
+.tr,
+.bl,
+.br {
+  background:
+    radial-gradient(circle at var(--cx) var(--cy),
+      transparent calc(var(--cell) / 2 - var(--tube) / 2 - var(--wall)),
+      var(--pipe-light) calc(var(--cell) / 2 - var(--tube) / 2 - var(--wall)),
+      var(--pipe-color) calc(var(--cell) / 2 - var(--tube) / 2),
+      transparent calc(var(--cell) / 2 - var(--tube) / 2),
+      transparent calc(var(--cell) / 2 + var(--tube) / 2),
+      var(--pipe-color) calc(var(--cell) / 2 + var(--tube) / 2),
+      var(--pipe-light) calc(var(--cell) / 2 + var(--tube) / 2 + var(--wall)),
+      transparent calc(var(--cell) / 2 + var(--tube) / 2 + var(--wall)));
+}
+
+.tl { --cx: 100%; --cy: 100%; }
+.tr { --cx: 0%; --cy: 100%; }
+.bl { --cx: 100%; --cy: 0%; }
+.br { --cx: 0%; --cy: 0%; }
+
+.tl::before,
+.tr::before,
+.bl::before,
+.br::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: conic-gradient(from var(--spin) at var(--cx) var(--cy), var(--flow-a), var(--flow-b), var(--flow-c), var(--flow-a));
+  -webkit-mask: radial-gradient(circle at var(--cx) var(--cy),
+    transparent calc(var(--cell) / 2 - var(--tube) / 2),
+    #000 calc(var(--cell) / 2 - var(--tube) / 2),
+    #000 calc(var(--cell) / 2 + var(--tube) / 2),
+    transparent calc(var(--cell) / 2 + var(--tube) / 2));
+  mask: radial-gradient(circle at var(--cx) var(--cy),
+    transparent calc(var(--cell) / 2 - var(--tube) / 2),
+    #000 calc(var(--cell) / 2 - var(--tube) / 2),
+    #000 calc(var(--cell) / 2 + var(--tube) / 2),
+    transparent calc(var(--cell) / 2 + var(--tube) / 2));
+  animation: spin 3.2s linear infinite;
+}
+
+.tl::after,
+.tr::after,
+.bl::after,
+.br::after {
+  inset: 0;
+  background: conic-gradient(from var(--spin) at var(--cx) var(--cy), var(--flow-a), var(--flow-b), var(--flow-c), var(--flow-a));
+  -webkit-mask: radial-gradient(circle at var(--cx) var(--cy),
+    transparent calc(var(--cell) / 2 - var(--tube) / 2 + 4px),
+    #000 calc(var(--cell) / 2 - var(--tube) / 2 + 4px),
+    #000 calc(var(--cell) / 2 + var(--tube) / 2 - 4px),
+    transparent calc(var(--cell) / 2 + var(--tube) / 2 - 4px));
+  mask: radial-gradient(circle at var(--cx) var(--cy),
+    transparent calc(var(--cell) / 2 - var(--tube) / 2 + 4px),
+    #000 calc(var(--cell) / 2 - var(--tube) / 2 + 4px),
+    #000 calc(var(--cell) / 2 + var(--tube) / 2 - 4px),
+    transparent calc(var(--cell) / 2 + var(--tube) / 2 - 4px));
+}
+
+@keyframes flow-x {
+  to { background-position: -220% 0; }
+}
+
+@keyframes flow-y {
+  to { background-position: 0 -220%; }
+}
+
+@keyframes spin {
+  to { --spin: 360deg; }
+}
+
+@media (max-width: 720px) {
+  body {
+    padding: 16px;
+  }
+
+  :root {
+    --cell: 46px;
+    --tube: 22px;
+    --wall: 4px;
+  }
+}
+</style>
+</head>
+<body>
+  <main>
+    <h1>CSS 连续管道效果</h1>
+    <p class="intro">
+      输入方向序列控制管道路径：<code>R</code> 右、<code>L</code> 左、<code>U</code> 上、<code>D</code> 下。
+      每次方向变化的位置都会自动生成弯头，整条管道连续不断开。
+    </p>
+
+    <section class="toolbar" aria-label="管道样式">
+      <label class="control">管道色 <input id="pipeColor" type="color" value="#20365b"></label>
+      <label class="control">渐变 A <input id="flowA" type="color" value="#23d5ff"></label>
+      <label class="control">渐变 B <input id="flowB" type="color" value="#b86cff"></label>
+      <label class="control">渐变 C <input id="flowC" type="color" value="#3dffc2"></label>
+      <label class="control">管径 <input id="tubeSize" type="range" min="18" max="42" value="28"><span id="tubeValue">28px</span></label>
+    </section>
+
+    <section class="pathbar" aria-label="路径控制">
+      <input id="pathInput" class="path-input" value="RRRDDDRRRUUURRRDDD" spellcheck="false" aria-label="方向序列">
+      <button class="action" id="applyPath" type="button">应用路径</button>
+      <button class="action" id="resetPath" type="button">重置</button>
+    </section>
+
+    <section class="button-row" aria-label="追加方向">
+      <button class="dir" type="button" data-dir="U" aria-label="向上">↑</button>
+      <button class="dir" type="button" data-dir="D" aria-label="向下">↓</button>
+      <button class="dir" type="button" data-dir="L" aria-label="向左">←</button>
+      <button class="dir" type="button" data-dir="R" aria-label="向右">→</button>
+      <button class="action" id="undoPath" type="button">撤销一步</button>
+      <button class="action" id="clearPath" type="button">清空</button>
+    </section>
+
+    <p id="status" class="status"></p>
+
+    <section class="stage">
+      <div id="pipe" class="pipe" aria-label="连续管道预览"></div>
+    </section>
+  </main>
+
+  <script>
+    const cols = 15;
+    const rows = 9;
+    const start = { x: 1, y: 2 };
+    const defaultPath = "RRRDDDRRRUUURRRDDD";
+    const dirs = {
+      U: { x: 0, y: -1, side: "U", opposite: "D" },
+      D: { x: 0, y: 1, side: "D", opposite: "U" },
+      L: { x: -1, y: 0, side: "L", opposite: "R" },
+      R: { x: 1, y: 0, side: "R", opposite: "L" }
+    };
+    const classBySides = {
+      L: "h",
+      R: "h",
+      U: "v",
+      D: "v",
+      LR: "h",
+      DU: "v",
+      LU: "tl",
+      RU: "tr",
+      DL: "bl",
+      DR: "br"
+    };
+
+    const root = document.documentElement;
+    const pipe = document.getElementById("pipe");
+    const status = document.getElementById("status");
+    const pathInput = document.getElementById("pathInput");
+
+    root.style.setProperty("--cols", cols);
+    root.style.setProperty("--rows", rows);
+
+    const bindColor = (id, prop) => {
+      document.getElementById(id).addEventListener("input", event => {
+        root.style.setProperty(prop, event.target.value);
+      });
+    };
+
+    bindColor("pipeColor", "--pipe-color");
+    bindColor("flowA", "--flow-a");
+    bindColor("flowB", "--flow-b");
+    bindColor("flowC", "--flow-c");
+
+    const tubeSize = document.getElementById("tubeSize");
+    const tubeValue = document.getElementById("tubeValue");
+
+    tubeSize.addEventListener("input", event => {
+      const value = `${event.target.value}px`;
+      tubeValue.textContent = value;
+      root.style.setProperty("--tube", value);
+    });
+
+    const cleanPath = value => value.toUpperCase().replace(/[^UDLR]/g, "");
+
+    function buildCells(path) {
+      const cells = new Map();
+      const key = (x, y) => `${x},${y}`;
+      const addSide = (x, y, side) => {
+        const id = key(x, y);
+        if (!cells.has(id)) cells.set(id, { x, y, sides: new Set(), turn: false });
+        cells.get(id).sides.add(side);
+      };
+
+      let x = start.x;
+      let y = start.y;
+      const visited = new Set([key(x, y)]);
+      const errors = [];
+
+      path.split("").forEach(step => {
+        const dir = dirs[step];
+        const nx = x + dir.x;
+        const ny = y + dir.y;
+
+        if (nx < 0 || nx >= cols || ny < 0 || ny >= rows) {
+          errors.push(`路径越界：第 ${visited.size} 步 ${step}`);
+          return;
+        }
+
+        addSide(x, y, dir.side);
+        addSide(nx, ny, dir.opposite);
+        x = nx;
+        y = ny;
+        visited.add(key(x, y));
+      });
+
+      cells.forEach(cell => {
+        const sides = [...cell.sides].sort().join("");
+        cell.className = classBySides[sides] || "";
+        cell.turn = ["tl", "tr", "bl", "br"].includes(cell.className);
+        if (!cell.className) errors.push(`第 ${cell.x},${cell.y} 格连接数异常，避免回头或交叉。`);
+      });
+
+      return { cells, errors };
+    }
+
+    function render() {
+      const path = cleanPath(pathInput.value);
+      pathInput.value = path;
+      pipe.innerHTML = "";
+
+      const { cells, errors } = buildCells(path);
+      const fragments = document.createDocumentFragment();
+
+      for (let y = 0; y < rows; y += 1) {
+        for (let x = 0; x < cols; x += 1) {
+          const cell = cells.get(`${x},${y}`);
+          const el = document.createElement("div");
+          el.className = `seg ${cell?.className || ""}`;
+          if (cell?.turn) {
+            const dot = document.createElement("span");
+            dot.className = "turn-dot";
+            el.appendChild(dot);
+          }
+          fragments.appendChild(el);
+        }
+      }
+
+      pipe.appendChild(fragments);
+
+      if (errors.length) {
+        status.textContent = errors[0];
+        status.classList.add("is-error");
+      } else {
+        const turnCount = [...cells.values()].filter(cell => cell.turn).length;
+        status.textContent = `当前 ${path.length} 步，${turnCount} 个转弯点。修改序列或点方向按钮即可控制任意位置转弯。`;
+        status.classList.remove("is-error");
+      }
+    }
+
+    document.getElementById("applyPath").addEventListener("click", render);
+    document.getElementById("resetPath").addEventListener("click", () => {
+      pathInput.value = defaultPath;
+      render();
+    });
+    document.getElementById("clearPath").addEventListener("click", () => {
+      pathInput.value = "";
+      render();
+    });
+    document.getElementById("undoPath").addEventListener("click", () => {
+      pathInput.value = cleanPath(pathInput.value).slice(0, -1);
+      render();
+    });
+    pathInput.addEventListener("input", render);
+
+    document.querySelectorAll("[data-dir]").forEach(button => {
+      button.addEventListener("click", () => {
+        pathInput.value = cleanPath(pathInput.value) + button.dataset.dir;
+        render();
+      });
+    });
+
+    render();
+  </script>
+</body>
+</html>
