@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+
+    <style>
+        body {
+
+            margin: 0;
+
+            height: 100vh;
+
+            display: flex;
+            justify-content: center;
+            align-items: center;
+
+            background: #111;
+        }
+
+        /*
+  anchor
+*/
+        .hover-box {
+
+            anchor-name: --btn;
+
+            width: 200px;
+            height: 80px;
+
+            background: #000;
+
+            color: #fff;
+
+            border: none;
+
+            border-radius: 16px;
+
+            font-size: 20px;
+        }
+
+        /*
+  popover
+*/
+        .popup-content {
+
+            position: absolute;
+
+            position-anchor: --btn;
+
+            /*
+      挂到按钮下面
+    */
+            left: anchor(center);
+            top: anchor(bottom);
+
+            margin-top: 10px;
+
+            width: 240px;
+            height: 160px;
+
+            background: yellow;
+
+            border: none;
+
+            border-radius: 20px;
+
+            padding: 20px;
+
+            box-shadow:
+                0 10px 40px rgba(0, 0, 0, .3);
+        }
+
+        /*
+  打开状态
+*/
+        .popup-content:popover-open {
+
+            animation: popup-show .25s ease;
+        }
+
+        @keyframes popup-show {
+
+            from {
+
+                opacity: 0;
+
+                transform:
+                    translateY(-10px) scale(.95);
+            }
+
+            to {
+
+                opacity: 1;
+
+                transform:
+                    translateY(0) scale(1);
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <button class="hover-box" popovertarget="popup-content">
+
+        Open
+    </button>
+
+    <div id="popup-content" class="popup-content" popover>
+
+        Hello Popover
+
+    </div>
+
+</body>
+
+</html>
