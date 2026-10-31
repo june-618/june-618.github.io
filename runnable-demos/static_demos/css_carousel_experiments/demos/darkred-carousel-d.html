@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DarkRed Carousel D</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    :root {
+      --bg: #1d0407;
+      --frame: #7d131d;
+      --text: #fff3f0;
+      --muted: #d1b1a8;
+    }
+    body {
+      background:
+        radial-gradient(circle at 50% -20%, rgba(255,255,255,.12) 0%, rgba(255,255,255,0) 22%),
+        linear-gradient(180deg, #3e0711 0%, #160305 62%, #100204 100%);
+    }
+    .viewport {
+      height: 420px;
+      border: 2px solid rgba(175, 45, 45, .55);
+      background: linear-gradient(180deg, rgba(58, 8, 12, .92), rgba(22, 2, 5, .98));
+    }
+    .track { position: absolute; inset: 0; }
+    .toolbar { gap: 18px; }
+    .label { font-size: 16px; color: #ffd8cc; letter-spacing: .08em; text-transform: uppercase; }
+    .controls { display: flex; gap: 12px; }
+    .ctrl { width: 42px; height: 42px; border-radius: 999px; border: none; background: linear-gradient(180deg, #ff6a6a, #7e0a31); position: relative; cursor: pointer; }
+    .ctrl::before { content: ""; position: absolute; left: 50%; top: 50%; width: 11px; height: 11px; border-top: 2px solid #fff; border-right: 2px solid #fff; }
+    .ctrl.prev::before { transform: translate(-35%, -50%) rotate(-135deg); }
+    .ctrl.next::before { transform: translate(-65%, -50%) rotate(45deg); }
+    .game-card {
+      width: 220px; height: 300px; position: absolute; left: 50%; top: 50%;
+      border-radius: 18px; overflow: hidden; border: 1px solid rgba(255, 130, 92, .6);
+      background: #2a0508; box-shadow: 0 24px 38px rgba(0,0,0,.35);
+      transition: transform .4s cubic-bezier(.24,.86,.24,1), opacity .4s ease, filter .4s ease;
+    }
+    .cover { height: 100%; background-size: cover; background-position: center; }
+    .cover::after { content: ""; position: absolute; inset: auto 0 0 0; height: 42%; background: linear-gradient(180deg, rgba(37,4,7,0) 0%, rgba(37,4,7,.88) 85%); }
+    .card-body { position: absolute; inset: auto 0 0 0; z-index: 1; padding: 16px 14px 18px; display: flex; flex-direction: column; gap: 8px; align-items: center; }
+    .title { margin: 0; transform: none; font-size: 20px; line-height: 1.1; color: #fff; white-space: normal; }
+    .play { transform: none; width: 84%; font-size: 18px; padding: 10px 0; color: #fff; background: linear-gradient(180deg, #ff7474, #8a0f31); box-shadow: inset 0 1px 0 rgba(255,255,255,.28); }
+    .badge { background: rgba(255, 225, 125, .92); color: #5f2800; font-size: 16px; }
+    .theme-gold .cover { background: linear-gradient(135deg, #ffcb57, #ff7b4b, #e84444); }
+    .theme-ocean .cover { background: linear-gradient(135deg, #65b9ff, #6d6cff, #3f2288); }
+    .theme-jade .cover { background: linear-gradient(135deg, #63ffce, #23b989, #186a56); }
+    .theme-pink .cover { background: linear-gradient(135deg, #ff8ad7, #ff5d91, #8c234a); }
+    .theme-sand .cover { background: linear-gradient(135deg, #ffd68e, #ff9f58, #b52a1a); }
+    .theme-night .cover { background: linear-gradient(135deg, #b9c9ff, #5d66c8, #231f51); }
+    .theme-fire .cover { background: linear-gradient(135deg, #ffd671, #ff7e4c, #be132f); }
+    .theme-leaf .cover { background: linear-gradient(135deg, #bfff87, #5dd46e, #276c41); }
+    .theme-violet .cover { background: linear-gradient(135deg, #dfc4ff, #8756ff, #391c78); }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar">
+    <span class="label">D · 纯丝滑位移</span>
+    <div class="controls">
+      <button class="ctrl prev" id="prev"></button>
+      <button class="ctrl next" id="next"></button>
+    </div>
+  </div>
+  <section class="viewport"><div class="track" id="track"></div></section>
+  <p class="tips">特点: 几乎不旋转，主要靠位移和缩放，最克制，也最像稳定线上版。</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 7);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach((card) => track.appendChild(card));
+let active = 3;
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active;
+    const x = d * 106;
+    const y = Math.abs(d) * 16;
+    const scale = d === 0 ? 1 : d === -1 || d === 1 ? .84 : .72;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+    card.style.zIndex = 90 - Math.abs(d);
+    card.style.opacity = Math.abs(d) > 2 ? .24 : 1;
+    card.style.filter = d === 0 ? 'none' : 'brightness(.86) saturate(.8)';
+  });
+}
+document.getElementById('prev').onclick = () => { active = (active - 1 + items.length) % items.length; render(); };
+document.getElementById('next').onclick = () => { active = (active + 1) % items.length; render(); };
+render();
+</script>
+</body>
+</html>

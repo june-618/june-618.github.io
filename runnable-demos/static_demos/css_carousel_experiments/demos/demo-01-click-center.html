@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 01 - 点击切换</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .game-card { cursor: pointer; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <div class="toolbar">
+      <button class="btn" id="prev">上一张</button>
+      <button class="btn" id="next">下一张</button>
+      <div class="dots"></div>
+    </div>
+    <section class="viewport"><div class="track" id="track"></div></section>
+    <p class="tips">交互: 点击卡片或按钮切换，中间卡高亮并放大</p>
+  </main>
+<script src="./shared.js"></script>
+<script>
+const track = document.getElementById('track');
+const items = DEMO_ITEMS.slice(0, 5);
+const cards = items.map(createGameCard);
+cards.forEach((card, i) => {
+  track.appendChild(card);
+  card.addEventListener('click', () => setActive(i));
+});
+let active = 1;
+function posOf(i) {
+  let d = i - active;
+  if (d > items.length / 2) d -= items.length;
+  if (d < -items.length / 2) d += items.length;
+  return d;
+}
+function setActive(i) {
+  active = (i + items.length) % items.length;
+  cards.forEach((card, idx) => {
+    const d = posOf(idx);
+    const x = d * 235;
+    const scale = d === 0 ? 1 : 0.86;
+    const y = d === 0 ? -50 : -20;
+    const z = 30 - Math.abs(d);
+    card.style.zIndex = z;
+    card.style.opacity = Math.abs(d) > 2 ? 0 : 1;
+    card.style.filter = d === 0 ? 'none' : 'saturate(.75)';
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+  });
+  makeDots(items.length, active);
+}
+prev.onclick = () => setActive(active - 1);
+next.onclick = () => setActive(active + 1);
+setActive(active);
+</script>
+</body>
+</html>

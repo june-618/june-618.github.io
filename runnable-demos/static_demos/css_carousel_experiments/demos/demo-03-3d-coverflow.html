@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 03 - 3D Coverflow</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .viewport { perspective: 1300px; }
+    .track { transform-style: preserve-3d; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar">
+    <button class="btn" id="prev">Prev</button>
+    <button class="btn" id="next">Next</button>
+    <div class="dots"></div>
+  </div>
+  <section class="viewport"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 3D 透视封面流，支持按钮 + 键盘方向键</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 7);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 2;
+function render() {
+  cards.forEach((card, i) => {
+    let d = i - active;
+    const x = d * 200;
+    const rotate = d * -32;
+    const z = -Math.abs(d) * 120;
+    const y = d === 0 ? -54 : -20;
+    const s = d === 0 ? 1.03 : .82;
+    card.style.zIndex = `${999 - Math.abs(d)}`;
+    card.style.opacity = Math.abs(d) > 3 ? 0 : 1;
+    card.style.transform = `translate3d(calc(-50% + ${x}px), calc(-50% + ${y}px), ${z}px) rotateY(${rotate}deg) scale(${s})`;
+    card.style.filter = d === 0 ? 'none' : 'brightness(.88)';
+  });
+  makeDots(items.length, active);
+}
+function shift(v){ active = (active + v + items.length) % items.length; render(); }
+prev.onclick = () => shift(-1);
+next.onclick = () => shift(1);
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') shift(-1);
+  if (e.key === 'ArrowRight') shift(1);
+});
+render();
+</script>
+</body>
+</html>
