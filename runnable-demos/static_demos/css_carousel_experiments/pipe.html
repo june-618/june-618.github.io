@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>SVG 管道进度条</title>
+<style>
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 32px 32px 48px;
+    background: radial-gradient(circle at 30% -10%, #1d3a6b, #07101f 55%);
+    color: #e6f0ff;
+    font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+  }
+  h1 { margin: 0 0 6px; font-size: 24px; }
+  .subtitle { margin: 0 0 20px; color: #9ab4d8; font-size: 14px; line-height: 1.6; }
+  .subtitle code {
+    background: rgba(94,193,255,.12); color:#5ec1ff;
+    padding: 1px 6px; border-radius: 4px; font-size: 12px;
+  }
+
+  /* 进度控制条 */
+  .controls {
+    position: sticky; top: 12px; z-index: 10;
+    display: flex; align-items: center; gap: 14px;
+    background: rgba(15, 28, 50, .85);
+    backdrop-filter: blur(10px);
+    border: 1px solid #2a4d84; border-radius: 12px;
+    padding: 12px 18px;
+    margin-bottom: 18px;
+  }
+  .controls label { font-size: 13px; color: #9ab4d8; }
+  .controls input[type=range] {
+    flex: 1; accent-color: #5ec1ff;
+  }
+  .controls .pct {
+    min-width: 60px; text-align: right;
+    font-variant-numeric: tabular-nums;
+    font-weight: 700; color: #5ec1ff; font-size: 16px;
+  }
+  .controls .btn {
+    padding: 6px 12px; font-size: 12px; cursor: pointer;
+    background: rgba(94,193,255,.12); color: #5ec1ff;
+    border: 1px solid #2a4d84; border-radius: 6px;
+  }
+  .controls .btn:hover { background: rgba(94,193,255,.22); }
+  .controls .btn.active { background: #5ec1ff; color: #07101f; border-color: #5ec1ff; }
+
+  .scene {
+    background: rgba(15, 28, 50, .55);
+    border: 1px solid #1d3559;
+    border-radius: 16px;
+    padding: 14px 20px 18px;
+    margin-bottom: 14px;
+  }
+  .scene-title {
+    font-size: 13px; color: #9ab4d8; margin: 0 0 8px;
+    display: flex; justify-content: space-between;
+  }
+  .scene-title .label-pct { color: #5ec1ff; font-weight: 700; }
+
+  svg { display: block; width: 100%; height: auto; }
+
+  /* 关键：两条路径 */
+  .pipe-track {
+    fill: none;
+    stroke: #243a5e;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .pipe-fill {
+    fill: none;
+    stroke: url(#flow);
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    /* dashoffset 由 JS 设置 */
+    transition: stroke-dashoffset .4s cubic-bezier(.4,.8,.3,1);
+  }
+</style>
+</head>
+<body>
+
+<h1>SVG 管道进度条</h1>
+<p class="subtitle">
+  原理：用 <code>path.getTotalLength()</code> 拿到路径总长 L，把 <code>stroke-dasharray</code> 设成 <code>L L</code>，<br/>
+  再让 <code>stroke-dashoffset = L · (1 - 进度%)</code>，内容就会沿管道生长。任意形状都通用。
+</p>
+
+<!-- 共用渐变（一条从头到尾的渐变，跟随 path） -->
+<svg width="0" height="0" style="position:absolute">
+  <defs>
+    <linearGradient id="flow" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%"   stop-color="#5ec1ff"/>
+      <stop offset="50%"  stop-color="#a87cff"/>
+      <stop offset="100%" stop-color="#5effc8"/>
+    </linearGradient>
+  </defs>
+</svg>
+
+<!-- 进度控制 -->
+<div class="controls">
+  <label>进度</label>
+  <input type="range" id="pct" min="0" max="100" value="60" step="0.5"/>
+  <span class="pct" id="pct-v">60%</span>
+  <button class="btn" data-set="0">0%</button>
+  <button class="btn" data-set="50">50%</button>
+  <button class="btn" data-set="100">100%</button>
+  <button class="btn" id="play">▶ 自动</button>
+</div>
+
+<!-- ============== SCENE 1：Z 形蜿蜒 ============== -->
+<div class="scene">
+  <div class="scene-title"><span>SCENE 1 · Z 形蜿蜒</span><span class="label-pct"></span></div>
+  <svg viewBox="0 0 800 280" preserveAspectRatio="xMidYMid meet">
+    <path class="pipe-track" stroke-width="44"
+          d="M 20 40 L 250 40 L 250 240 L 500 240 L 500 80 L 780 80"/>
+    <path class="pipe-fill" stroke-width="32"
+          d="M 20 40 L 250 40 L 250 240 L 500 240 L 500 80 L 780 80"/>
+  </svg>
+</div>
+
+<!-- ============== SCENE 2：阶梯下行 ============== -->
+<div class="scene">
+  <div class="scene-title"><span>SCENE 2 · 阶梯下行</span><span class="label-pct"></span></div>
+  <svg viewBox="0 0 800 320" preserveAspectRatio="xMidYMid meet">
+    <path class="pipe-track" stroke-width="40"
+          d="M 20 40 L 180 40 L 180 140 L 360 140 L 360 240 L 540 240 L 540 100 L 700 100 L 700 280 L 780 280"/>
+    <path class="pipe-fill" stroke-width="28"
+          d="M 20 40 L 180 40 L 180 140 L 360 140 L 360 240 L 540 240 L 540 100 L 700 100 L 700 280 L 780 280"/>
+  </svg>
+</div>
+
+<!-- ============== SCENE 3：闭合环路 ============== -->
+<div class="scene">
+  <div class="scene-title"><span>SCENE 3 · 闭合环路</span><span class="label-pct"></span></div>
+  <svg viewBox="0 0 800 280" preserveAspectRatio="xMidYMid meet">
+    <path class="pipe-track" stroke-width="44"
+          d="M 80 60 L 720 60 L 720 220 L 80 220 Z"/>
+    <path class="pipe-fill" stroke-width="32"
+          d="M 80 60 L 720 60 L 720 220 L 80 220 Z"/>
+  </svg>
+</div>
+
+<!-- ============== SCENE 4：自由曲线 ============== -->
+<div class="scene">
+  <div class="scene-title"><span>SCENE 4 · 自由曲线</span><span class="label-pct"></span></div>
+  <svg viewBox="0 0 800 240" preserveAspectRatio="xMidYMid meet">
+    <path class="pipe-track" stroke-width="40"
+          d="M 20 120 Q 150 20 280 120 T 540 120 T 780 120"/>
+    <path class="pipe-fill" stroke-width="28"
+          d="M 20 120 Q 150 20 280 120 T 540 120 T 780 120"/>
+  </svg>
+</div>
+
+<script>
+// 1) 初始化：给每条 fill path 测量长度并设 dasharray
+const fills = document.querySelectorAll('.pipe-fill');
+const lengths = [];
+fills.forEach(p => {
+  const len = p.getTotalLength();
+  lengths.push(len);
+  p.style.strokeDasharray = `${len} ${len}`;
+  p.style.strokeDashoffset = len; // 初始 0%
+});
+
+// 2) 设置进度：百分比 → dashoffset
+const labels = document.querySelectorAll('.scene-title .label-pct');
+function setProgress(pct) {
+  pct = Math.max(0, Math.min(100, pct));
+  fills.forEach((p, i) => {
+    p.style.strokeDashoffset = lengths[i] * (1 - pct / 100);
+  });
+  labels.forEach(el => el.textContent = pct.toFixed(0) + '%');
+  pctV.textContent = pct.toFixed(0) + '%';
+  range.value = pct;
+}
+
+// 3) 控件绑定
+const range = document.getElementById('pct');
+const pctV = document.getElementById('pct-v');
+range.addEventListener('input', e => setProgress(+e.target.value));
+document.querySelectorAll('.btn[data-set]').forEach(b => {
+  b.addEventListener('click', () => setProgress(+b.dataset.set));
+});
+
+// 4) 自动播放
+let timer = null;
+const playBtn = document.getElementById('play');
+playBtn.addEventListener('click', () => {
+  if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶ 自动'; playBtn.classList.remove('active'); return; }
+  let p = +range.value;
+  playBtn.textContent = '⏸ 暂停'; playBtn.classList.add('active');
+  timer = setInterval(() => {
+    p += 1;
+    if (p > 100) p = 0;
+    setProgress(p);
+  }, 60);
+});
+
+setProgress(60);
+</script>
+</body>
+</html>
