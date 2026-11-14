@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 05 - 滚轮切换</title>
+  <link rel="stylesheet" href="./shared.css" />
+</head>
+<body>
+<main class="page">
+  <div class="toolbar"><div class="dots"></div></div>
+  <section class="viewport" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 鼠标滚轮切换卡片（支持触控板横向/纵向滚动）</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 6);
+const track = document.getElementById('track');
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 1;
+let lock = false;
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active;
+    const x = d * 225;
+    const scale = d === 0 ? 1 : .82;
+    const y = d === 0 ? -48 : -16;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+    card.style.opacity = Math.abs(d) > 2 ? 0 : 1;
+    card.style.zIndex = 99 - Math.abs(d);
+  });
+  makeDots(items.length, active);
+}
+function shift(dir) {
+  if (lock) return;
+  lock = true;
+  active = (active + dir + items.length) % items.length;
+  render();
+  setTimeout(() => lock = false, 220);
+}
+document.getElementById('vp').addEventListener('wheel', e => {
+  e.preventDefault();
+  const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+  shift(d > 0 ? 1 : -1);
+}, { passive: false });
+render();
+</script>
+</body>
+</html>

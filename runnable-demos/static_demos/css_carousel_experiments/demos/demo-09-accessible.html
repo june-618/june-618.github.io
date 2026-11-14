@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 09 - 键盘无障碍</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .game-card:focus-visible { outline: 4px solid #ffb300; outline-offset: 2px; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar"><div class="dots"></div></div>
+  <section class="viewport" aria-label="游戏轮播" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: Tab 聚焦 + Enter 选中 + 左右方向键切换，适配无障碍要求</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const items = DEMO_ITEMS.slice(0, 5);
+const track = document.getElementById('track');
+const cards = items.map((item, i) => {
+  const c = createGameCard(item);
+  c.tabIndex = 0;
+  c.setAttribute('role', 'button');
+  c.setAttribute('aria-label', `选择 ${item.title}`);
+  c.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { active = i; render(); }
+  });
+  c.addEventListener('focus', () => { active = i; render(); });
+  return c;
+});
+cards.forEach(c => track.appendChild(c));
+let active = 2;
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active;
+    card.style.transform = `translate(calc(-50% + ${d * 226}px), calc(-50% + ${d === 0 ? -48 : -14}px)) scale(${d === 0 ? 1 : .82})`;
+    card.style.opacity = Math.abs(d) > 2 ? 0 : 1;
+    card.style.zIndex = 99 - Math.abs(d);
+    card.setAttribute('aria-current', d === 0 ? 'true' : 'false');
+  });
+  makeDots(items.length, active);
+}
+window.addEventListener('keydown', e => {
+  if (e.key === 'ArrowLeft') { active = (active - 1 + items.length) % items.length; render(); cards[active].focus(); }
+  if (e.key === 'ArrowRight') { active = (active + 1) % items.length; render(); cards[active].focus(); }
+});
+render();
+</script>
+</body>
+</html>

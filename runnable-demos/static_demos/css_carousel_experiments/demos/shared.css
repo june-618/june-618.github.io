@@ -1,0 +1,154 @@
+:root {
+  --bg: #d8e5f5;
+  --frame: #2f95ff;
+  --text: #10233f;
+  --muted: #6d7f9b;
+  --btn1: #6ce5ff;
+  --btn2: #2e86ff;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  font-family: "PingFang SC", "Microsoft YaHei", "Helvetica Neue", Arial, sans-serif;
+  background: radial-gradient(circle at 50% -20%, #ffffff 0%, var(--bg) 55%, #c7d7ed 100%);
+  color: var(--text);
+}
+.page {
+  min-height: 100vh;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  align-items: center;
+  justify-content: center;
+}
+.toolbar {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.btn {
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #f1f7ff, #dbe8ff);
+  color: #144179;
+  padding: 8px 14px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.viewport {
+  width: min(100%, 940px);
+  height: 520px;
+  border: 3px solid var(--frame);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.2);
+  position: relative;
+  overflow: hidden;
+}
+.track {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 100%;
+  height: 100%;
+}
+.game-card {
+  width: 300px;
+  height: 430px;
+  border-radius: 18px;
+  background: #f8fbff;
+  border: 3px solid #6aa8ff;
+  box-shadow: 0 18px 40px rgba(22, 62, 129, 0.22);
+  overflow: hidden;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform-origin: center;
+  transition: transform .35s ease, opacity .35s ease, filter .35s ease;
+}
+.cover {
+  height: 285px;
+  position: relative;
+  overflow: hidden;
+}
+.cover::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 20% 15%, rgba(255,255,255,.55), rgba(255,255,255,0) 45%),
+              radial-gradient(circle at 85% 80%, rgba(255,255,255,.4), rgba(255,255,255,0) 42%);
+}
+.badge {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  background: rgba(146, 254, 181, .9);
+  color: #1f4f27;
+  border-radius: 10px;
+  padding: 4px 10px;
+  font-weight: 900;
+  letter-spacing: .5px;
+  font-size: 20px;
+}
+.card-body {
+  height: calc(100% - 285px);
+  background: linear-gradient(180deg, #ffffff, #d8ecff 95%);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px;
+}
+.title {
+  margin: 0;
+  font-size: 40px;
+  line-height: 1;
+  font-weight: 900;
+  transform: scale(.5);
+  transform-origin: top center;
+  text-align: center;
+  white-space: nowrap;
+  width: 100%;
+  color: #0b1f3f;
+}
+.play {
+  width: 92%;
+  padding: 11px 0;
+  border: 0;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--btn1), var(--btn2));
+  color: #08306e;
+  font-size: 40px;
+  transform: scale(.5);
+  transform-origin: center;
+  font-weight: 900;
+  box-shadow: inset 0 -3px 0 rgba(9, 45, 120, .35);
+  cursor: pointer;
+}
+.theme-gold .cover { background: linear-gradient(135deg, #ffc34b, #ff7f3f, #ef5350); }
+.theme-ocean .cover { background: linear-gradient(135deg, #58d1ff, #4f7bff, #3149d6); }
+.theme-jade .cover { background: linear-gradient(135deg, #59ffcc, #1bc9b4, #0f7f86); }
+.theme-pink .cover { background: linear-gradient(135deg, #ff86d7, #ff5ba8, #9a39ff); }
+.theme-sand .cover { background: linear-gradient(135deg, #ffd98f, #ffab61, #f97853); }
+.theme-night .cover { background: linear-gradient(135deg, #9ac0ff, #5b7adb, #202861); }
+.theme-fire .cover { background: linear-gradient(135deg, #ffd36a, #ff7c45, #e53935); }
+.theme-leaf .cover { background: linear-gradient(135deg, #b6ff7d, #59d46d, #2f9358); }
+.theme-violet .cover { background: linear-gradient(135deg, #d8c1ff, #8d5bff, #4f2aab); }
+.tips { color: var(--muted); font-size: 14px; }
+.dots { display: flex; gap: 8px; }
+.dots span {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(26, 73, 150, .25);
+}
+.dots span.active { background: #2f95ff; }
+@media (max-width: 720px) {
+  .viewport { height: 480px; }
+  .game-card { width: 248px; height: 380px; }
+  .cover { height: 240px; }
+  .card-body { height: calc(100% - 240px); }
+}
