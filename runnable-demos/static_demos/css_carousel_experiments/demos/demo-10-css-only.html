@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 10 - CSS Only</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .track { display: grid; place-items: center; }
+    .slots { position: relative; width: 100%; height: 100%; }
+    input[type="radio"] { position: absolute; opacity: 0; }
+    .nav { display: flex; gap: 6px; }
+    .nav label { width: 14px; height: 14px; border-radius: 50%; background: #aac7f4; cursor: pointer; }
+    #s1:checked ~ .nav label[for="s1"], #s2:checked ~ .nav label[for="s2"], #s3:checked ~ .nav label[for="s3"] { background: #2f95ff; }
+    .game-card { transition: .35s ease; }
+    #s1:checked ~ .slots .c1, #s2:checked ~ .slots .c2, #s3:checked ~ .slots .c3 { transform: translate(calc(-50% + 0px), calc(-50% - 50px)) scale(1); opacity: 1; z-index: 3; }
+    #s1:checked ~ .slots .c2, #s2:checked ~ .slots .c3, #s3:checked ~ .slots .c1 { transform: translate(calc(-50% + 230px), calc(-50% - 20px)) scale(.84); opacity: 1; z-index: 2; }
+    #s1:checked ~ .slots .c3, #s2:checked ~ .slots .c1, #s3:checked ~ .slots .c2 { transform: translate(calc(-50% - 230px), calc(-50% - 20px)) scale(.84); opacity: 1; z-index: 2; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <section class="viewport">
+    <div class="track">
+      <input id="s1" name="s" type="radio" checked>
+      <input id="s2" name="s" type="radio">
+      <input id="s3" name="s" type="radio">
+      <div class="slots" id="slots"></div>
+      <div class="nav">
+        <label for="s1"></label>
+        <label for="s2"></label>
+        <label for="s3"></label>
+      </div>
+    </div>
+  </section>
+  <p class="tips">交互: 纯 CSS 无 JS（适合低复杂度场景或兜底）</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const slots = document.getElementById('slots');
+[DEMO_ITEMS[0], DEMO_ITEMS[1], DEMO_ITEMS[2]].forEach((it, i) => {
+  const c = createGameCard(it);
+  c.classList.add(`c${i+1}`);
+  slots.appendChild(c);
+});
+</script>
+</body>
+</html>

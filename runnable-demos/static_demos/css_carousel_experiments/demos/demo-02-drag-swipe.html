@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Demo 02 - 拖拽滑动</title>
+  <link rel="stylesheet" href="./shared.css" />
+  <style>
+    .viewport { touch-action: pan-y; }
+    .game-card { user-select: none; }
+  </style>
+</head>
+<body>
+<main class="page">
+  <div class="toolbar"><div class="dots"></div></div>
+  <section class="viewport" id="vp"><div class="track" id="track"></div></section>
+  <p class="tips">交互: 鼠标或手指左右拖拽，松手后自动吸附到最近卡片</p>
+</main>
+<script src="./shared.js"></script>
+<script>
+const track = document.getElementById('track');
+const items = DEMO_ITEMS.slice(0, 6);
+const cards = items.map(createGameCard);
+cards.forEach(c => track.appendChild(c));
+let active = 1;
+let dragStart = 0;
+let offset = 0;
+let dragging = false;
+function render() {
+  cards.forEach((card, i) => {
+    const d = i - active + offset;
+    const x = d * 240;
+    const scale = 1 - Math.min(Math.abs(d) * .16, .3);
+    const y = -20 - Math.min(Math.abs(d), 1.4) * 24;
+    card.style.zIndex = `${100 - Math.round(Math.abs(d) * 10)}`;
+    card.style.transform = `translate(calc(-50% + ${x}px), calc(-50% + ${y}px)) scale(${scale})`;
+    card.style.opacity = Math.abs(d) > 2.6 ? 0 : 1;
+    card.style.filter = Math.abs(d) < .5 ? 'none' : 'saturate(.72)';
+  });
+  makeDots(items.length, ((active % items.length) + items.length) % items.length);
+}
+const vp = document.getElementById('vp');
+vp.addEventListener('pointerdown', e => {
+  dragging = true;
+  dragStart = e.clientX;
+  vp.setPointerCapture(e.pointerId);
+});
+vp.addEventListener('pointermove', e => {
+  if (!dragging) return;
+  const dx = e.clientX - dragStart;
+  offset = dx / 240;
+  render();
+});
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  if (offset > .25) active -= 1;
+  if (offset < -.25) active += 1;
+  active = (active + items.length) % items.length;
+  offset = 0;
+  render();
+}
+vp.addEventListener('pointerup', endDrag);
+vp.addEventListener('pointercancel', endDrag);
+render();
+</script>
+</body>
+</html>
